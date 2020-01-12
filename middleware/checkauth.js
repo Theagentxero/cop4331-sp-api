@@ -1,5 +1,9 @@
 // Libraries
 const log = require('../libraries/logging.js');
+const _ = require('underscore');
+const jwt = require('jsonwebtoken');
+const config = require('../config/auth-config.js');
+
 
 function checkHeaderAuth (req, res, next) {
     //console.log("Router Got Something")
@@ -30,14 +34,21 @@ function checkHeaderAuth (req, res, next) {
 
 function checkCookieAuth (req, res, next) {
     // Check if request has cookies at all
-    if(req.cookies){
-        log.info("Cookies Found")
-        //console.log(req.cookies);
-        next();
+    if(_.has(req.cookies,"jwt")){
+        console.log("Found JWT Cookie")
+        jwt.verify(req.cookies.jwt, config.jwtpublic, { algorithms: ['RS256'], audience: 'localhost', issuer: 'COP4331API'}, function(err, payload){
+            if(err){
+                console.log(err);
+                res.status(401).send("Invalid Authentication Cookie"); 
+            }else{
+                req.user_id = payload.user_id;
+                next();
+            }
+        });
     }else{
-        // Request Does Not Have JWT On Correct Header
-        next();
-    }  
+        console.log("No JWT Cookie Found")
+        res.status(401).send("Missing Authentication Cookie"); 
+    }
 };
 
 module.exports = checkCookieAuth;

@@ -12,6 +12,22 @@ var configs = [
         isJSON: true,
         assertHas: ['authentication', 'data'],
         file: "./config/db-connection.json"
+    },
+    {
+      human_name: "RSA 4096 Private Key - JWT",
+      key_name: 'jwtprivate',
+      type: "Private Key",
+      isJSON: false,
+      assertHas: [],
+      file: "./config/keys/jwt-rsa.private"
+    },
+    {
+      human_name: "RSA 4096 Public Key - JWT",
+      key_name: 'jwtpublic',
+      type: "Public Key",
+      isJSON: false,
+      assertHas: [],
+      file: "./config/keys/jwt-rsa.public"
     }
 
 ];

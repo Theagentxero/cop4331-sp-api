@@ -17,6 +17,9 @@ const resbuilder = require('../libraries/resultbuilder.js');
 const db = require('../libraries/dbqueries.js');
 // Congifiguration
 const config = require('../config/auth-config.js');
+// Middleware
+const authVerification = require('../middleware/checkauth.js');
+
 // Route Setup
 // Express Middleware Setup
 router.use(cors());
@@ -75,13 +78,8 @@ router.post('/create.json', function (req, res) {
             arguments.callee.displayName = "post-create-user";
             //Create Param
             var values = [req.body.first_name, req.body.last_name, req.body.username, req.body.username, hash];
-            var pass = {
-                username: req.body.username,
-                passhash: hash,
-                first_name: req.body.first_name,
-                last_name: req.body.last_name, 
-            };
-            db.insert.createAccount(pool, values, successCallback, failureCallback);
+            
+            db.auth.createAccount(pool, values, successCallback, failureCallback);
 
             function successCallback(qres){
                 // Create JWT
@@ -131,6 +129,146 @@ router.post('/create.json', function (req, res) {
         res.status(result.getStatus()).type('application/json').send(result.getPayload());
         timer.endTimer(result);
     }
+
+    
+});
+
+router.post('/login.json', function (req, res) {
+    // Get Timer and Result Builder
+    var {timer, result} = initializeRoute(req);
+    // Basic Validation
+    if( !('username' in req.body) ){ 
+        result.addError("MALFORMED REQUEST: Request Must Contain username");
+        result.setStatus(400);
+    }else{
+        if( !validator.isEmail(req.body.username) ){
+            result.addError("MALFORMED REQUEST: Username Must Be A Valid Email");
+            result.setStatus(400);
+        }
+    }
+    if( !('password' in req.body) ){ 
+        result.addError("MALFORMED REQUEST: Request Must Contain password");
+        result.setStatus(400); 
+    }
+
+    if( !result.hasErrors() ){
+        var values = [req.body.username];
+            
+        db.auth.getLogin(pool, values, successCallback, failureCallback);
+
+        function successCallback(qres){
+            //console.log(qres);
+            //log.debug("Fetch User Returns: " + qres.rowCount);
+            if(qres.rowCount == 0){
+                // No Match Found For User ID
+                result.setStatus(403);
+                result.addError("User Not Found")
+                result.addError("User Not Found - Detail: User may not exist, or may be disabled")
+                res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                timer.endTimer(result);
+            }else if(qres.rowCount == 1){
+                var userRow = qres.rows[0];
+                
+                bcrypt.compare(req.body.password, userRow.hash, (err, bres) => {
+                    arguments.callee.displayName = "post-login-user";
+                    if(err){
+                        //Error
+                        console.log(err);
+                    }else if(bres){
+                        //Matches, create JWT, Set Cookies, and Return
+                        // JWT is Good For One Day, Cookie Is Good For One Day
+                        var jwtOpts = {
+                            expiresIn: 86400,
+                            issuer: "COP4331API",
+                            audience: ["localhost"],
+                            algorithm: 'RS256'
+                        };
+                        var jwtPayload = {
+                            user_id: userRow.id,
+                            first_name: userRow.first_name, 
+                            last_name: userRow.last_name
+                        };
+                        //TODO: Placeholder To Be Replaced With Actual Config Information
+                        var userAcctConfig = {
+
+                        };
+                        var insecureSessionMgmtToken = (1000 * 60 * 60 * 24) + Date.now();
+                        jwt.sign(jwtPayload, config.jwtprivate, jwtOpts, function(err, token){
+                            if(err){
+                                console.log(err);
+                                result.setStatus(500);
+                                result.addError("Error Durring JWT Creation")
+                                res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                                timer.endTimer(result);
+                            }else{
+                                result.setStatus(200);
+                                // Set Some Cookies - Good For 24 Hrs
+                                // Contains Info We Can Pull and Use With Javascript, Effectively Exactly The Contents of the JWT
+                                res.cookie('userinfo', JSON.stringify(jwtPayload), { maxAge: 86400000, sameSite: false });
+                                // Contains The Signed JWT - Cannot Be Pulled By Javascript
+                                res.cookie('jwt', token, { maxAge: 86400000, httpOnly: true, sameSite: false });
+                                res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                                timer.endTimer(result);
+                            }
+                            
+                        });
+                    }else{
+                        //Does Not Match
+                        result.setStatus(401);
+                        result.addError("Authentication Failed")
+                        res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                        timer.endTimer(result);
+                    }
+                });
+            }else{ 
+                // More Than One User Matches The User Name Entered
+                result.setStatus(403);
+                result.addError("User Invalid")
+                res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                timer.endTimer(result);
+            }
+        }
+    
+        function failureCallback(failure){
+            console.log("DB Query Failed")
+            if(failure.error){
+                console.log(failure.error.name);
+                //console.log(failure.error.message);
+                if(failure.error.constraint == 'unq_users_email_and_username')
+                    console.log("User Already Exists");
+                result.setStatus(500);
+                result.addError("An Error Has Occured E100");
+                res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                timer.endTimer(result);
+            }else{
+                console.log(failure.result)
+                if(failure.result == "USERNAME ALREADY EXISTS"){
+                    result.setStatus(403);
+                    result.addError("Username Already Exists");
+                    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                    timer.endTimer(result);
+                }else{
+                    result.setStatus(500);
+                    result.addError("An Error Has Occured E100");
+                    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                    timer.endTimer(result);
+                }
+            }
+        }
+
+    }else{
+        res.status(result.getStatus()).type('application/json').send(result.getPayload());
+        timer.endTimer(result);
+    }
+});
+
+router.get('/checkAuth.json', authVerification, function (req, res) {
+    // Get Timer and Result Builder
+    var {timer, result} = initializeRoute(req);
+    // Basic Validation
+    result.setStatus(200);
+    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+    timer.endTimer(result);
 
     
 });

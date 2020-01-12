@@ -105,3 +105,6 @@ dist
 
 # DB Connection Configuration File
 config/db-connection.json
+
+# Keys
+config/keys/*.*

@@ -9,25 +9,36 @@ const select = {
 };
 
 const insert = {
+
+};
+
+const auth = {
+    getLogin(pool, values, successCallback, failureCallback){
+        const query = {
+            text: 'SELECT id, disabled, first_name, last_name, username, hash FROM auth.users WHERE NOT(disabled) AND username = $1::TEXT',
+            values: values
+        };
+        performQuery_withValues_noLocal(pool, query, successCallback, failureCallback);
+    },
     createAccount(pool, values, successCallback, failureCallback){
         const query = {
             text: 'INSERT INTO auth.users (first_name, last_name, email, username, hash, rounds) VALUES($1::TEXT, $2::TEXT, $3::TEXT, $4::TEXT, $5::TEXT, 10::BIGINT)',
             values: values
         };
-        console.log(successCallback)
-        console.log(failureCallback)
-        performQuery_withValues(pool, query, successCallback, failureCallback);
+        //console.log(successCallback)
+        //console.log(failureCallback)
+        performQuery_withValues_noLocal(pool, query, successCallback, failureCallback);
     }
 };
 
 // Actual Query Function
-function performQuery_withValues(pool, query, successCallback, failureCallback){
-    console.log(successCallback)
-    console.log(failureCallback)
-    var success = successCallback;
-    var failure = failureCallback;
-    console.log(success)
-    console.log(failure)
+function performQuery_withValues_noLocal(pool, query, successCallback, failureCallback){
+    //console.log(successCallback)
+    //console.log(failureCallback)
+    //var success = successCallback;
+    //var failure = failureCallback;
+    //console.log(success)
+    //console.log(failure)
     //console.log(query.text)
     pool.connect((err, client, success, failure) => {
         const shouldAbort = err => {
@@ -134,5 +145,6 @@ function performQuery_noValues(pool, query, successCallback, failureCallback){
 // Export ES6 Style
 module.exports = {
     select,
-    insert
+    insert,
+    auth
 };
