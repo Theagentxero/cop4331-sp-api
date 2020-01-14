@@ -8,6 +8,7 @@ const uuidv4 = require('uuid/v4');
 const _ = require('underscore');
 var cors = require('cors');
 var cookieParser = require('cookie-parser');
+var mongoose = require('mongoose');
 // Libraries
 const log = require('../libraries/logging.js');
 const resbuilder = require('../libraries/resultbuilder.js');
@@ -25,7 +26,62 @@ router.use(cookieParser());
 router.use((req, res, next) => { return authVerification(req, res, next)});
 
 // DB Setup
+// Postgres Setup
 const pool = new Pool( config.dbconfig.data );
+
+// MongoDB Setup
+mongoose.connect(config.dbconfig.mongoTest.connectionString, {useNewUrlParser: true});
+var mongo = mongoose.connection;
+
+// Mongo DB Advanced Setup
+// Listen For Errors And Alert
+mongo.on('error', console.error.bind(console, 'connection error:'));
+// Alert On Connection Success
+mongo.once('open', function() {
+  // we're connected!
+  log.procedure("MongoDB Database Connected");
+});
+
+// Define A Schema
+var Schema = mongoose.Schema;
+var contactSchema = new Schema({
+    user_id: { type: String, index: true },
+    first_name: String,
+    last_name: String,
+    comments: [{ body: String, date: { type: Date, default: Date.now } }],
+    hidden: Boolean,
+    meta: {
+        date_created: { type: Date, default: Date.now },
+        last_modified: { type: Date, default: Date.now }
+    }
+});
+
+var Contact = mongoose.model('contact', contactSchema);
+
+var testContact = {
+    user_id: "27dfc525-f241-40d4-86ec-f982c43e89f0",
+    first_name: "Test",
+    last_name: "Test",
+    comments: [
+        {body: "I Made A Comment"}
+    ]
+}
+
+Contact.create(testContact, function(err, results){
+    if(err)
+        log.critical("An Error Occured When Creating Stuff")
+    
+    console.log(results);
+    var newID = results._id;
+
+    Contact.findById(newID).exec((err, res)=>{
+        if(err)
+            console.log(err);
+        
+        console.log(res);
+    })
+})
+
 
 // pool Setup
 // the pool with emit an error on behalf of any idle clients
