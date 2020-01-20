@@ -30,7 +30,7 @@ router.use((req, res, next) => { return authVerification(req, res, next)});
 const pool = new Pool( config.dbconfig.data );
 
 // MongoDB Setup
-mongoose.connect(config.dbconfig.mongoTest.connectionString, {useNewUrlParser: true});
+mongoose.connect(config.dbconfig.mongoTest.connectionString, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true});
 var mongo = mongoose.connection;
 
 // Mongo DB Advanced Setup
@@ -69,7 +69,10 @@ var testContact = {
 
 Contact.create(testContact, function(err, results){
     if(err)
+    {
+        console.log(err)
         log.critical("An Error Occured When Creating Stuff")
+    }
     
     console.log(results);
     var newID = results._id;
