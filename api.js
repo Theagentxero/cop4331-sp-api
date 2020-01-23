@@ -2,7 +2,7 @@
 const fs = require('fs');
 const express = require('express');
 const { Pool } = require('pg');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const uuidv4 = require('uuid/v4');
