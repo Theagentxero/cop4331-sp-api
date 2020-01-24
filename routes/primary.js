@@ -45,45 +45,43 @@ mongo.once('open', function() {
 // Define A Schema
 var Schema = mongoose.Schema;
 var contactSchema = new Schema({
-    user_id: { type: String, index: true },
-    first_name: String,
-    last_name: String,
-    comments: [{ body: String, date: { type: Date, default: Date.now } }],
-    hidden: Boolean,
-    meta: {
-        date_created: { type: Date, default: Date.now },
-        last_modified: { type: Date, default: Date.now }
-    }
+    userID: Object,
+    favorite: Boolean,
+    firstName: String,
+    middleName: String,
+    lastName: String,
+    phoneNumbers: [{ type: String, value: String }],
+    emails: [{ type: String, value: String }]
 });
 
 var Contact = mongoose.model('contact', contactSchema);
 
-var testContact = {
-    user_id: "27dfc525-f241-40d4-86ec-f982c43e89f0",
-    first_name: "Test",
-    last_name: "Test",
-    comments: [
-        {body: "I Made A Comment"}
-    ]
-}
+// var testContact = {
+//     user_id: "27dfc525-f241-40d4-86ec-f982c43e89f0",
+//     first_name: "Test",
+//     last_name: "Test",
+//     comments: [
+//         {body: "I Made A Comment"}
+//     ]
+// }
 
-Contact.create(testContact, function(err, results){
-    if(err)
-    {
-        console.log(err)
-        log.critical("An Error Occured When Creating Stuff")
-    }
+// Contact.create(testContact, function(err, results){
+//     if(err)
+//     {
+//         console.log(err)
+//         log.critical("An Error Occured When Creating Stuff")
+//     }
     
-    console.log(results);
-    var newID = results._id;
+//     console.log(results);
+//     var newID = results._id;
 
-    Contact.findById(newID).exec((err, res)=>{
-        if(err)
-            console.log(err);
+//     Contact.findById(newID).exec((err, res)=>{
+//         if(err)
+//             console.log(err);
         
-        console.log(res);
-    })
-})
+//         console.log(res);
+//     })
+// })
 
 
 // pool Setup
@@ -122,49 +120,20 @@ router.get('/contacts.json', function (req, res) {
             timer.endTimer(result);
             return;
         }else{
+            // So we need to do something about actually getting contacts from mongoDB
+            // For some reaon this worked
+            // Parse contact
             console.log(contacts);
+            var x = {
+                contacts: contacts
+            };
+            result.setStatus(200);
+            result.setPayload(x);
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
         }
-        // So we need to do something about actually getting contacts from mongoDB
-        // For some reaon this worked
-        // Parse contact
-    });
-
-    // Request To DB, Callback To Success or Failure
-    db.select.listContacts(pool, req.user, success, failure);
-
-    function success(qres){
-        console.log(qres);
-        var packed = {
-            msg: "Hello World"
-        };
-    
-        result.setStatus(200);
-        result.setPayload(packed);
-        res.status(result.getStatus()).type('application/json').send(result.getPayload());
         
-        timer.endTimer(result);
-    }
-
-    function failure(fail){
-        console.log("DB Query Failed")
-        if(failure.error){
-            console.log(failure.error.name);
-            console.log(failure.error.message);
-            result.setStatus(500);
-            result.addError("An Error Has Occured E100");
-            res.status(result.getStatus()).type('application/json').send(result.getPayload());
-            timer.endTimer(result);
-        }else{
-            console.log(failure.result)
-            result.setStatus(500);
-            result.addError("An Error Has Occured E100");
-            res.status(result.getStatus()).type('application/json').send(result.getPayload());
-            timer.endTimer(result);
-        }
-
-    }
-
-    
+    });
 });
 // Actual Endpoints - END
 
