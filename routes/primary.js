@@ -108,10 +108,27 @@ function initializeRoute(req){
 router.get('/contacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
-
-    // Check For Queries
-    // TODO, if and when queries are a thing
     
+    var userID = req.user.id;
+
+    // Make Request to Mongo, Fetching Contacts for 'userID'
+    // TODO: Fix this mongo lookup
+
+    Contact.find({userID: userID}, function(err, contacts){
+        if(err){
+            result.setStatus(500);
+            result.setPayload({});
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+            return;
+        }else{
+            console.log(contacts);
+        }
+        // So we need to do something about actually getting contacts from mongoDB
+        // For some reaon this worked
+        // Parse contact
+    });
+
     // Request To DB, Callback To Success or Failure
     db.select.listContacts(pool, req.user, success, failure);
 

@@ -18,8 +18,7 @@ function checkHeaderAuth (req, res, next) {
                 //Do Authorization Stuff Here, Create A Some Permissions Object and Pass it Though Via The Req object.
                 //console.log(payload);
                 req.user = {
-                    id: payload.id,
-                    account: payload.account
+                    id: payload.user_id
                 };
                 //console.log('User Appears Authorized')
                 //console.log(req.user);
@@ -41,7 +40,7 @@ function checkCookieAuth (req, res, next) {
                 console.log(err);
                 res.status(401).send("Invalid Authentication Cookie"); 
             }else{
-                req.user_id = payload.user_id;
+                req.user = {id: payload.user_id};
                 next();
             }
         });
