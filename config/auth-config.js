@@ -61,8 +61,9 @@ function getConfigItem(configObj){
         return res;
         } catch (error) {
         // Load Failed
-        var fullpath = path.join(__dirname, configObj.file);
+        
         log.critical("Unable To Load " + configObj.human_name + " " + configObj.type);
+        var fullpath = path.join(__dirname, configObj.file);
         log.critical("Looking at File Path: " + fullpath);
         console.log(error);
         throw new Error("FAILED TO LOAD " + configObj.human_name + " " + configObj.type + ": FILE EXISTS - ERROR DURRING READ");
@@ -70,6 +71,8 @@ function getConfigItem(configObj){
     }else{
         // File Does Not Exist
         log.critical("Unable To Find " + configObj.human_name + " " + configObj.type);
+        var fullpath = path.join(__dirname, configObj.file);
+        log.critical("Looking at File Path: " + fullpath);
         throw new Error("FAILED TO LOAD " + configObj.human_name + " " + configObj.type + ": EXPECTING JSON FILE " + configObj.file);
     }
 }
