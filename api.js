@@ -56,6 +56,7 @@ app.get('/', async function(req, res) {
 });
 
 // This allow us to check if the server is up, responds 200 when up
+// Primarily used for load balancer
 app.get('/status', async function(req, res) {
     res.status(200).send();
 });

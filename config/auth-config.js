@@ -1,9 +1,10 @@
 var assert = require('assert');
 const fs = require('fs');
 const log = require('../libraries/logging.js');
+var path = require('path');
 
 log.procedure("Loading Configuration Files");
-
+console.log(__dirname);
 var configs = [
     {
         human_name: "Database",
