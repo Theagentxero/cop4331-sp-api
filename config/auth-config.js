@@ -51,16 +51,19 @@ function getConfigItem(configObj){
         // File Exists
         try {
         var res = null;
+        var fullpath = path.join(__dirname, configObj.file);
         if(configObj.isJSON){
-            res = JSON.parse(fs.readFileSync(configObj.file));
+            res = JSON.parse(fs.readFileSync(fullpath));
         }else{
-            res = fs.readFileSync(configObj.file);
+            res = fs.readFileSync(fullpath);
         }
         // Load Success
         return res;
         } catch (error) {
         // Load Failed
+        var fullpath = path.join(__dirname, configObj.file);
         log.critical("Unable To Load " + configObj.human_name + " " + configObj.type);
+        log.critical("Looking at File Path: " + fullpath);
         console.log(error);
         throw new Error("FAILED TO LOAD " + configObj.human_name + " " + configObj.type + ": FILE EXISTS - ERROR DURRING READ");
         }
