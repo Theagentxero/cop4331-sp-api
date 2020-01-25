@@ -47,11 +47,12 @@ configs.forEach((cfg)=>{
 
 function getConfigItem(configObj){
     log.info("Load Config: " + configObj.human_name);
-    if( fs.existsSync(configObj.file) ){
+    var fullpath = path.join(__dirname, configObj.file);
+    if( fs.existsSync(fullpath) ){
         // File Exists
         try {
         var res = null;
-        var fullpath = path.join(__dirname, configObj.file);
+        
         if(configObj.isJSON){
             res = JSON.parse(fs.readFileSync(fullpath));
         }else{
@@ -63,7 +64,6 @@ function getConfigItem(configObj){
         // Load Failed
         
         log.critical("Unable To Load " + configObj.human_name + " " + configObj.type);
-        var fullpath = path.join(__dirname, configObj.file);
         log.critical("Looking at File Path: " + fullpath);
         console.log(error);
         throw new Error("FAILED TO LOAD " + configObj.human_name + " " + configObj.type + ": FILE EXISTS - ERROR DURRING READ");
@@ -71,9 +71,8 @@ function getConfigItem(configObj){
     }else{
         // File Does Not Exist
         log.critical("Unable To Find " + configObj.human_name + " " + configObj.type);
-        var fullpath = path.join(__dirname, configObj.file);
         log.critical("Looking at File Path: " + fullpath);
-        throw new Error("FAILED TO LOAD " + configObj.human_name + " " + configObj.type + ": EXPECTING JSON FILE " + configObj.file);
+        throw new Error("FAILED TO LOAD " + configObj.human_name + " " + configObj.type + ": EXPECTING JSON FILE " + fullpath);
     }
 }
   
