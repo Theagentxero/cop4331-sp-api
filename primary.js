@@ -46,7 +46,7 @@ mongo.once('open', function() {
 // Define A Schema
 var Schema = mongoose.Schema;
 var contactSchema = new Schema({
-  __id : ObjectID() // implicit
+  id: ObjectID(), // implicit
   userID: UUID(),
   favorite: boolean,
   firstName : string,
@@ -55,7 +55,7 @@ var contactSchema = new Schema({
 
   phoneNumbers : [{type: string, value: string}],
 
-  emails : [{type: string, value: string}]
+  emails : [{type: string, value: string}],
 });
 
 var Contact = mongoose.model('contact', contactSchema);
@@ -80,46 +80,46 @@ function initializeRoute(req){
 }
 
 // Actual Endpoints - START
-router.get('/contacts.json', function (req, res) {
-    // Get Timer and Result Builder
-    var {timer, result} = initializeRoute(req);
-
-    var userID = req.user.__id;
-
-    // Make Request to Mongo, Fetching Contacts for 'userID'
-    // TODO: Fix this mongo lookup
-
-    Contact.find({userID: userID}, function(err, contacts){
-        if(err){
-            result.setStatus(500);
-            result.setPayload({});
-            res.status(result.getStatus()).type('application/json').send(result.getPayload());
-            timer.endTimer(result);
-            return;
-        }else{
-            // So we need to do something about actually getting contacts from mongoDB
-            // For some reaon this worked
-            // Parse contact
-            console.log(contacts);
-            var x = {
-                contacts: contacts
-            };
-            result.setStatus(200);
-            result.setPayload(x);
-            res.status(result.getStatus()).type('application/json').send(result.getPayload());
-            timer.endTimer(result);
-        }
-
-    });
-});
+// router.get('/contacts.json', function (req, res) {
+//     // Get Timer and Result Builder
+//     var {timer, result} = initializeRoute(req);
+//
+//     var userID = req.user.id;
+//
+//     // Make Request to Mongo, Fetching Contacts for 'userID'
+//     // TODO: Fix this mongo lookup
+//
+//     Contact.find({userID: userID}, function(err, contacts){
+//         if(err){
+//             result.setStatus(500);
+//             result.setPayload({});
+//             res.status(result.getStatus()).type('application/json').send(result.getPayload());
+//             timer.endTimer(result);
+//             return;
+//         }else{
+//             // So we need to do something about actually getting contacts from mongoDB
+//             // For some reaon this worked
+//             // Parse contact
+//             console.log(contacts);
+//             var x = {
+//                 contacts: contacts
+//             };
+//             result.setStatus(200);
+//             result.setPayload(x);
+//             res.status(result.getStatus()).type('application/json').send(result.getPayload());
+//             timer.endTimer(result);
+//         }
+//
+//     });
+// });
 
 
 // getContact()
-router.get('/contacts.json', function (req, res) {
+router.get('/getContacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
-    var userID = req.user.__id;
+    var userID = req.user.id;
 
 
     Contact.find({userID: userID}, function(err, contacts){
@@ -148,14 +148,14 @@ router.get('/contacts.json', function (req, res) {
 
 
 // addContact()
-router.post('/contacts.json', function (req, res) {
+router.post('/addContacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
-    var userID = req.user.__id;
+    var userID = req.user.id;
 
-    Contact.post({
-      __id : ObjectID() // implicit
+    Contact.post(
+      id : ObjectID(), // implicit
       userID: UUID(),
       favorite: boolean,
       firstName : string,
@@ -163,7 +163,7 @@ router.post('/contacts.json', function (req, res) {
       lastName: string,
 
       phoneNumbers : [{type: string, value: string}],
-      emails : [{type: string, value: string}]}, function(err, contacts){
+      emails : [{type: string, value: string}], function(err, contacts){
 
         if(err){
             result.setStatus(500);
@@ -186,13 +186,13 @@ router.post('/contacts.json', function (req, res) {
 });
 
 // searchContacts()
-router.post('/contacts.json', function (req, res) {
+router.get('/searchContacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
-    var userID = req.user.__id;
+    var userID = req.user.id;
 
-    Contact.post({userID: userID}, function(err, contacts){
+    Contact.find({userID: userID}, function(err, contacts){
         if(err){
             result.setStatus(500);
             result.setPayload({});
@@ -201,7 +201,7 @@ router.post('/contacts.json', function (req, res) {
             return;
         }else{
             result.setStatus(200);
-            result.setPayload(json.stringify(Contact.find({userID : userID})));
+            result.setPayload();
             res.status(result.getStatus()).type('application/json').send(result.getPayload());
             timer.endTimer(result);
         }
@@ -210,11 +210,31 @@ router.post('/contacts.json', function (req, res) {
 });
 
 
+router.get('/getFavorite.json', function (req, res) {
+    // Get Timer and Result Builder
+    var {timer, result} = initializeRoute(req);
+
+    var userID = req.user.id;
+
+    Contact.find({userID : userID} , {favorite : true} , function(err, contacts){
+        if(err){
+            result.setStatus(500);
+            result.setPayload({});
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+            return;
+        }else{
+            result.setStatus(200);
+            result.setPayload(contacts);
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+        }
+
+    });
+});
 
 
 // Actual Endpoints - END
-
-
 
 
 module.exports = router;
