@@ -46,46 +46,19 @@ mongo.once('open', function() {
 // Define A Schema
 var Schema = mongoose.Schema;
 var contactSchema = new Schema({
-    __id : ObjectID() // implicit
-    userID: UUID(),
-    favorite: boolean,
-    firstName : string,
-    middleName: string,
-    lastName: string,
+  __id : ObjectID() // implicit
+  userID: UUID(),
+  favorite: boolean,
+  firstName : string,
+  middleName: string,
+  lastName: string,
 
-    phoneNumbers : [{type: string, value: string}],
+  phoneNumbers : [{type: string, value: string}],
 
-    emails : [{type: string, value: string}]
+  emails : [{type: string, value: string}]
 });
 
 var Contact = mongoose.model('contact', contactSchema);
-
-// var testContact = {
-//     user_id: "27dfc525-f241-40d4-86ec-f982c43e89f0",
-//     first_name: "Test",
-//     last_name: "Test",
-//     comments: [
-//         {body: "I Made A Comment"}
-//     ]
-// }
-
-// Contact.create(testContact, function(err, results){
-//     if(err)
-//     {
-//         console.log(err)
-//         log.critical("An Error Occured When Creating Stuff")
-//     }
-
-//     console.log(results);
-//     var newID = results._id;
-
-//     Contact.findById(newID).exec((err, res)=>{
-//         if(err)
-//             console.log(err);
-
-//         console.log(res);
-//     })
-// })
 
 
 // pool Setup
@@ -111,7 +84,7 @@ router.get('/contacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
-    var userID = req.user.id;
+    var userID = req.user.__id;
 
     // Make Request to Mongo, Fetching Contacts for 'userID'
     // TODO: Fix this mongo lookup
@@ -146,7 +119,7 @@ router.get('/contacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
-    var userID = req.user.id;
+    var userID = req.user.__id;
 
 
     Contact.find({userID: userID}, function(err, contacts){
@@ -174,34 +147,24 @@ router.get('/contacts.json', function (req, res) {
 });
 
 
-
-// var contactSchema = new Schema({
-      // userID: Object,
-      // favorite: Boolean,
-      // firstName: String,
-      // middleName: String,
-      // lastName: String,
-      // phoneNumbers: [{ type: String, value: String }],
-      // emails: [{ type: String, value: String }]
-  // });
-
-
 // addContact()
 router.post('/contacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
-    var userID = req.user.id;
+    var userID = req.user.__id;
 
     Contact.post({
-          userID: Object,
-          favorite: Boolean,
-          firstName: String,
-          middleName: String,
-          lastName: String,
-          phoneNumbers: [{ type: String, value: String }],
-          emails: [{ type: String, value: String }]
-        }, function(err, contacts){
+      __id : ObjectID() // implicit
+      userID: UUID(),
+      favorite: boolean,
+      firstName : string,
+      middleName: string,
+      lastName: string,
+
+      phoneNumbers : [{type: string, value: string}],
+      emails : [{type: string, value: string}]}, function(err, contacts){
+
         if(err){
             result.setStatus(500);
             result.setPayload({});
@@ -222,14 +185,12 @@ router.post('/contacts.json', function (req, res) {
     });
 });
 
-
-
 // searchContacts()
 router.post('/contacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
-    var userID = req.user.id;
+    var userID = req.user.__id;
 
     Contact.post({userID: userID}, function(err, contacts){
         if(err){
