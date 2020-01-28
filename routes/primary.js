@@ -45,13 +45,18 @@ mongo.once('open', function() {
 // Define A Schema
 var Schema = mongoose.Schema;
 var contactSchema = new Schema({
-    userID: Object,
-    favorite: Boolean,
-    firstName: String,
-    middleName: String,
-    lastName: String,
-    phoneNumbers: [{ type: String, value: String }],
-    emails: [{ type: String, value: String }]
+
+      __id : ObjectID() // implicit
+      userID: UUID(),
+      favorite: boolean,
+      firstName : string,
+      middleName: string,
+      lastName: string,
+
+      phoneNumbers : [{type: string, value: string}],
+
+      emails : [{type: string, value: string}]
+
 });
 
 var Contact = mongoose.model('contact', contactSchema);
@@ -71,14 +76,14 @@ var Contact = mongoose.model('contact', contactSchema);
 //         console.log(err)
 //         log.critical("An Error Occured When Creating Stuff")
 //     }
-    
+
 //     console.log(results);
 //     var newID = results._id;
 
 //     Contact.findById(newID).exec((err, res)=>{
 //         if(err)
 //             console.log(err);
-        
+
 //         console.log(res);
 //     })
 // })
@@ -103,10 +108,12 @@ function initializeRoute(req){
 }
 
 // Actual Endpoints - START
+
+
 router.get('/contacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
-    
+
     var userID = req.user.id;
 
     // Make Request to Mongo, Fetching Contacts for 'userID'
@@ -132,9 +139,14 @@ router.get('/contacts.json', function (req, res) {
             res.status(result.getStatus()).type('application/json').send(result.getPayload());
             timer.endTimer(result);
         }
-        
+
     });
 });
+
+
+
+
+
 // Actual Endpoints - END
 
 
