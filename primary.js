@@ -46,13 +46,16 @@ mongo.once('open', function() {
 // Define A Schema
 var Schema = mongoose.Schema;
 var contactSchema = new Schema({
-    userID: Object,
-    favorite: Boolean,
-    firstName: String,
-    middleName: String,
-    lastName: String,
-    phoneNumbers: [{ type: String, value: String }],
-    emails: [{ type: String, value: String }]
+    __id : ObjectID() // implicit
+    userID: UUID(),
+    favorite: boolean,
+    firstName : string,
+    middleName: string,
+    lastName: string,
+
+    phoneNumbers : [{type: string, value: string}],
+
+    emails : [{type: string, value: string}]
 });
 
 var Contact = mongoose.model('contact', contactSchema);
