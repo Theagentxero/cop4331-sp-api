@@ -52,9 +52,9 @@ var contactSchema = new Schema({
   middleName: String,
   lastName: String,
 
-  phoneNumbers : [{type: String, value: String}],
+  phoneNumbers : [{name: String, value: String}],
 
-  emails : [{type: String, value: String}]
+  emails : [{name: String, value: String}]
 });
 
 var Contact = mongoose.model('contact', contactSchema);
@@ -138,6 +138,7 @@ router.post('/addcontacts.json', function (req, res) {
 
     newContact.save(function (err, contact){
       if(err){
+        console.log(err);
           result.setStatus(500);
           result.setPayload({});
           res.status(result.getStatus()).type('application/json').send(result.getPayload());
@@ -148,8 +149,8 @@ router.post('/addcontacts.json', function (req, res) {
           console.log("Added contact named " +req.body.firstName),
           console.log("Added contact named " +req.body.lastName),
           console.log("Added contact named " +req.body.middleName),
-          console.log("Added contact named " +req.body.phoneNumbers),
-          console.log("Added contact named " +req.body.emails),
+          // console.log("Added contact named " +req.body.phoneNumbers),
+          // console.log("Added contact named " +req.body.emails),
 
 
           result.setStatus(200);
