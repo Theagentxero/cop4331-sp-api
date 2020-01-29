@@ -18,6 +18,7 @@ const config = require('../config/auth-config.js');
 // Middleware
 const authVerification = require('../middleware/checkauth.js');
 
+
 // Route Setup
 // Express Middleware Setup
 router.use(cors());
@@ -45,48 +46,18 @@ mongo.once('open', function() {
 // Define A Schema
 var Schema = mongoose.Schema;
 var contactSchema = new Schema({
+  userID: String,
+  favorite: Boolean,
+  firstName : String,
+  middleName: String,
+  lastName: String,
 
-      __id : ObjectID() // implicit
-      userID: UUID(),
-      favorite: boolean,
-      firstName : string,
-      middleName: string,
-      lastName: string,
+  phoneNumbers : [{type: String, value: String}],
 
-      phoneNumbers : [{type: string, value: string}],
-
-      emails : [{type: string, value: string}]
-
+  emails : [{type: String, value: String}]
 });
 
 var Contact = mongoose.model('contact', contactSchema);
-
-// var testContact = {
-//     user_id: "27dfc525-f241-40d4-86ec-f982c43e89f0",
-//     first_name: "Test",
-//     last_name: "Test",
-//     comments: [
-//         {body: "I Made A Comment"}
-//     ]
-// }
-
-// Contact.create(testContact, function(err, results){
-//     if(err)
-//     {
-//         console.log(err)
-//         log.critical("An Error Occured When Creating Stuff")
-//     }
-
-//     console.log(results);
-//     var newID = results._id;
-
-//     Contact.findById(newID).exec((err, res)=>{
-//         if(err)
-//             console.log(err);
-
-//         console.log(res);
-//     })
-// })
 
 
 // pool Setup
@@ -107,17 +78,13 @@ function initializeRoute(req){
     }
 }
 
-// Actual Endpoints - START
-
-
-router.get('/contacts.json', function (req, res) {
+// getContact()
+router.get('/getcontacts', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
     var userID = req.user.id;
 
-    // Make Request to Mongo, Fetching Contacts for 'userID'
-    // TODO: Fix this mongo lookup
 
     Contact.find({userID: userID}, function(err, contacts){
         if(err){
@@ -144,12 +111,110 @@ router.get('/contacts.json', function (req, res) {
 });
 
 
+// addContact()
+router.post('/addcontacts.json', function (req, res) {
+    // Get Timer and Result Builder
+    var {timer, result} = initializeRoute(req);
 
+    // req contains the actual data user sent over..
+
+    var userID = req.user.id;
+
+    // create model instance ...
+
+    var cont = {
+      userID: userID,
+      favorite: req.body.favorite,
+      firstName : req.body.firstName,
+      middleName: req.body.middleName,
+      lastName: req.body.lastName,
+      phoneNumbers: req.body.phoneNumbers,
+      email : req.body.emails,
+    };
+
+    // pssing in the cont
+    var newContact = new Contact(cont)
+
+
+    newContact.save(function (err, contact){
+      if(err){
+          result.setStatus(500);
+          result.setPayload({});
+          res.status(result.getStatus()).type('application/json').send(result.getPayload());
+          timer.endTimer(result);
+          return;
+
+        }else{
+          console.log("Added contact named " +req.body.firstName),
+          console.log("Added contact named " +req.body.lastName),
+          console.log("Added contact named " +req.body.middleName),
+          console.log("Added contact named " +req.body.phoneNumbers),
+          console.log("Added contact named " +req.body.emails),
+
+
+          result.setStatus(200);
+          result.setPayload(contact);
+          res.status(result.getStatus()).type('application/json').send(result.getPayload());
+          timer.endTimer(result);
+        }
+
+    });
+
+
+});
+
+// searchContacts()
+router.get('/searchcontacts', function (req, res) {
+    // Get Timer and Result Builder
+    var {timer, result} = initializeRoute(req);
+
+    var userID = req.user.id;
+
+
+
+    Contact.find({firstName : req.body.firstName}, function(err, contacts){
+        if(err){
+            result.setStatus(500);
+            result.setPayload({});
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+            return;
+        }else{
+            result.setStatus(200);
+            result.setPayload(contacts);
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+        }
+
+    });
+});
+
+
+router.get('/getfavorite', function (req, res) {
+    // Get Timer and Result Builder
+    var {timer, result} = initializeRoute(req);
+
+    var userID = req.id;
+
+    Contact.find({userID : userID}, {favorite : true} , function(err, contacts){
+        if(err){
+            result.setStatus(500);
+            result.setPayload({});
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+            return;
+        }else{
+            result.setStatus(200);
+            result.setPayload(contacts);
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+        }
+
+    });
+});
 
 
 // Actual Endpoints - END
-
-
 
 
 module.exports = router;
