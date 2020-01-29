@@ -79,7 +79,7 @@ function initializeRoute(req){
 }
 
 // getContact()
-router.get('/getcontacts', function (req, res) {
+router.get('/contacts.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
@@ -112,7 +112,7 @@ router.get('/getcontacts', function (req, res) {
 
 
 // addContact()
-router.post('/addcontacts.json', function (req, res) {
+router.post('/add.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
@@ -165,7 +165,7 @@ router.post('/addcontacts.json', function (req, res) {
 });
 
 // searchContacts()
-router.get('/searchcontacts', function (req, res) {
+router.get('/search', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
@@ -191,7 +191,7 @@ router.get('/searchcontacts', function (req, res) {
 });
 
 
-router.get('/getfavorite', function (req, res) {
+router.get('/favorite', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
