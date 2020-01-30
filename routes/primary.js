@@ -132,25 +132,24 @@ router.post('/add.json', function (req, res) {
       email : req.body.emails,
     };
 
-    // pssing in the cont
+    // passing in the cont
     var newContact = new Contact(cont)
 
 
     newContact.save(function (err, contact){
-      if(err){
+      if(err)
+      {
         console.log(err);
           result.setStatus(500);
           result.setPayload({});
           res.status(result.getStatus()).type('application/json').send(result.getPayload());
           timer.endTimer(result);
           return;
-
-        }else{
-          console.log("Added contact named " +req.body.firstName),
-          console.log("Added contact named " +req.body.lastName),
-          console.log("Added contact named " +req.body.middleName),
-          // console.log("Added contact named " +req.body.phoneNumbers),
-          // console.log("Added contact named " +req.body.emails),
+        }
+        else
+        {
+          // console.log("Added contact named " +req.body.firstName),
+          // console.log("Added contact named " +req.body.lastName),
 
 
           result.setStatus(200);
@@ -160,51 +159,88 @@ router.post('/add.json', function (req, res) {
         }
 
     });
-
-
 });
 
 // searchContacts()
-router.get('/search', function (req, res) {
+router.get('/search.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
-    var userID = req.user.id;
+    // var userID = req.user.id;
+
+    var cont = {
+      favorite: req.body.favorite,
+      firstName : req.body.firstName,
+      middleName: req.body.middleName,
+      lastName: req.body.lastName,
+      phoneNumbers: req.body.phoneNumbers,
+      email : req.body.emails,
+    };
 
 
+    var newValue = new Contact(cont);
 
-    Contact.find({firstName : req.body.firstName}, function(err, contacts){
-        if(err){
-            result.setStatus(500);
-            result.setPayload({});
-            res.status(result.getStatus()).type('application/json').send(result.getPayload());
-            timer.endTimer(result);
-            return;
-        }else{
-            result.setStatus(200);
-            result.setPayload(contacts);
-            res.status(result.getStatus()).type('application/json').send(result.getPayload());
-            timer.endTimer(result);
-        }
+    // console.log("item: "+ newValue.firstName);
+    // console.log("item: "+ newValue.middleName);
+    // console.log("item: "+ newValue.lastName);
+    // console.log("item: "+ newValue.phoneNumbers);
+    // console.log("item: "+ newValue.emails);
+    // console.log("item: "+ newValue.favorite);
 
-    });
+
+  Contact.find({firstName : newValue.firstName}, function(err, contacts){
+      if(err){
+          result.setStatus(500);
+          result.setPayload({});
+
+          // console.log("Value not found...\n");
+
+          res.status(result.getStatus()).type('application/json').send(result.getPayload());
+          timer.endTimer(result);
+
+          return;
+      }else{
+          result.setStatus(200);
+          result.setPayload((contacts));
+
+          // console.log("\n\n\nFound: " + contacts.firstName);
+
+          // console.log("item: "+ contacts.firstName);
+          // console.log("item: "+ contacts.middleName);
+          // console.log("item: "+ contacts.lastName);
+          // console.log("item: "+ contacts.phoneNumbers);
+          // console.log("item: "+ contacts.emails);
+          // console.log("item: "+ contacts.favorite);
+
+          // console.log("\n\n");
+
+          res.status(result.getStatus()).type('application/json').send(result.getPayload());
+
+          timer.endTimer(result);
+      }
+  }
+
+  );
 });
 
 
-router.get('/favorite', function (req, res) {
+router.get('/favorite.json', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
 
     var userID = req.id;
 
     Contact.find({userID : userID}, {favorite : true} , function(err, contacts){
-        if(err){
+        if(err)
+        {
             result.setStatus(500);
             result.setPayload({});
             res.status(result.getStatus()).type('application/json').send(result.getPayload());
             timer.endTimer(result);
             return;
-        }else{
+        }
+        else
+        {
             result.setStatus(200);
             result.setPayload(contacts);
             res.status(result.getStatus()).type('application/json').send(result.getPayload());
