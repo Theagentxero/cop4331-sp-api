@@ -10,12 +10,15 @@ var cors = require('cors');
 var cookieParser = require('cookie-parser');
 var mongoose = require('mongoose');
 var mongodb = require('mongodb');
+
 // Libraries
 const log = require('../libraries/logging.js');
 const resbuilder = require('../libraries/resultbuilder.js');
 const db = require('../libraries/dbqueries.js');
+
 // Congifiguration
 const config = require('../config/auth-config.js');
+
 // Middleware
 const authVerification = require('../middleware/checkauth.js');
 
@@ -25,6 +28,7 @@ const authVerification = require('../middleware/checkauth.js');
 // Express Middleware Setup
 router.use(cors());
 router.use(cookieParser());
+
 // Check For User Auth - If The request makes it past this point, it contains a valid authorization
 router.use((req, res, next) => { return authVerification(req, res, next)});
 
@@ -39,8 +43,10 @@ var mongo = mongoose.connection;
 // Mongo DB Advanced Setup
 // Listen For Errors And Alert
 mongo.on('error', console.error.bind(console, 'connection error:'));
+
 // Alert On Connection Success
 mongo.once('open', function() {
+
     // we're connected!
     log.procedure("MongoDB Database Connected");
 });
@@ -53,9 +59,7 @@ var contactSchema = new Schema({
     firstName : String,
     middleName: String,
     lastName: String,
-
     phoneNumbers : [{name: String, value: String}],
-
     emails : [{name: String, value: String}]
 });
 
@@ -80,7 +84,7 @@ function initializeRoute(req){
     }
 }
 
-// getContact()
+// Get all contacts
 router.get('/contacts', function (req, res) {
     // Get Timer and Result Builder
     var {timer, result} = initializeRoute(req);
@@ -106,6 +110,7 @@ router.get('/contacts', function (req, res) {
 
     });
 });
+
 
 // Get Single Contact
 router.get('/contacts/:id', function (req, res) {
@@ -216,11 +221,7 @@ router.post('/contacts', function (req, res) {
 });
 
 
-
-  // edit... delete.. contacts..
-
-
-// Edit Contact
+// Edit the specific Contact
 router.put('/contacts/:id', function(req, res){
 
     var {timer, result} = initializeRoute(req);
@@ -320,8 +321,7 @@ router.put('/contacts/:id', function(req, res){
 });
 
 
-
-  // deletes the specific contact
+// Deletes the specific contact
 router.delete('/contacts/:id', function(req, res){
 
     var {timer, result} = initializeRoute(req);
@@ -365,6 +365,96 @@ router.delete('/contacts/:id', function(req, res){
         res.status(result.getStatus()).type('application/json').send(result.getPayload());
         timer.endTimer(result);
     });
+});
+
+// Searching through contacts
+router.get('/search/', function (req, res) {
+
+    /*
+    Example JSON request
+    {
+        "search": String,
+        "include": [array of Strings],
+        "options": {
+            "onlyFavorites": boolean
+        }
+    }
+    */
+
+    // get timer and result builder
+    var {timer, result} = initializeRoute(req);
+
+    log.info("Searching...")
+    //console.log(req.params)
+
+    // get user id
+    var userID = req.user.id;
+
+    // get json body
+    var body = req.body;
+
+    // set up whitelisting to prevent injection
+    var whitelist = ["firstName", "lastName", "middleName", "phoneNumbers", "emails"];
+
+    // create empty list of safe includes to use
+    var safeInclude = [];
+
+    // if the json body has an include property (these represent search terms)
+    if(_.has(req.body, "include"))
+    {
+        // if the include list is empty
+        if(req.body.include.length == 0)
+        {
+            // then by default, search everything
+            safeInclude = whitelist;
+        }
+        else
+        {
+            // as a precaution, pick out only the labels we whitelisted to use
+            safeInclude = _.intersection(req.body.include, whitelist);
+            
+            // check if anything "Abnormal" was sent in the includes property
+            var removedTerms = _.difference(req.body.include, safeInclude);
+
+            // generate an error message for each invalid search terms
+            removedTerms.forEach((term) => {
+                result.addError("Include Key: " + term + " is invalid dumbass, skipping search on invalid term");
+            });
+
+            // nothing was valid to search... bad request
+            if(safeInclude.length == 0)
+            {
+                result.setStatus(400);
+                result.setPayload({});
+                res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                timer.endTimer(result);
+                return;
+            }
+        }
+    }
+    else
+    {
+        // no include? Search everything by default then
+        safeInclude = whitelist;
+    }
+
+    // create an empty json object for mongoDB query
+    var searchJSON = {};
+
+    // fill in search json log it
+    safeInclude.forEach((term) => {
+        searchJSON[term] = req.body.search;
+    });
+
+    // TODO: Sanitize search for mongoDB
+    //       run search query on mongoDB
+    //       return results
+
+    // delete later, just testing something
+    result.setStatus(418);
+    result.setPayload({});
+    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+    timer.endTimer(result);
 });
 
 
