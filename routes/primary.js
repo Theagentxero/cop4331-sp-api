@@ -111,6 +111,129 @@ router.get('/contacts', function (req, res) {
     });
 });
 
+// Searching through contacts
+router.get('/contacts/search', function (req, res) {
+
+    /*
+    Example JSON request
+    {
+        "search": String,
+        "include": [array of Strings],
+        "options": {
+            "onlyFavorites": boolean
+        }
+    }
+    */
+
+    // get timer and result builder
+    var {timer, result} = initializeRoute(req);
+
+    log.info("Searching...")
+    //console.log(req.params)
+
+    // get user id
+    var userID = req.user.id;
+
+    // get json body
+    var body = req.body;
+
+    // set up whitelisting to prevent injection
+    var whitelist = ["firstName", "lastName", "middleName", "phoneNumbers", "emails"];
+
+    // create empty list of safe includes to use
+    var safeInclude = [];
+
+    // if the json body has an include property (these represent search terms)
+    if(_.has(req.body, "include"))
+    {
+        // if the include list is empty
+        if(req.body.include.length == 0)
+        {
+            // then by default, search everything
+            safeInclude = whitelist;
+        }
+        else
+        {
+            // as a precaution, pick out only the labels we whitelisted to use
+            safeInclude = _.intersection(req.body.include, whitelist);
+            
+            // check if anything "Abnormal" was sent in the includes property
+            var removedTerms = _.difference(req.body.include, safeInclude);
+
+            // generate an error message for each invalid search terms
+            removedTerms.forEach((term) => {
+                result.addError("Include Key: " + term + " is invalid dumbass, skipping search on invalid term");
+            });
+
+            // nothing was valid to search... bad request
+            if(safeInclude.length == 0)
+            {
+                result.setStatus(400);
+                result.setPayload({});
+                res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                timer.endTimer(result);
+                return;
+            }
+        }
+    }
+    else
+    {
+        // no include? Search everything by default then
+        safeInclude = whitelist;
+    }
+
+    var subDocItems = ["phoneNumbers","emails"];
+
+    var orAry = [];
+    
+
+    // fill the search object
+    safeInclude.forEach((term) => {
+        tmp = {};
+        if(subDocItems.includes(term)){
+            tmp[term + ".value"] = new RegExp(req.body.search, "i");
+        }else{
+            tmp[term] = new RegExp(req.body.search, "i");
+        }
+        
+        orAry.push(tmp)
+    });
+
+    // create an empty object for mongoDB query
+    var query = {
+        $and: [
+            {userID: userID},
+            {$or: orAry}
+        ]
+    };
+
+    console.log("Search Object");
+    console.log(query);
+    Contact.find(query, function(error, data){
+
+        if (error){
+            log.debug("Delete Operation Failed");
+            console.log(error);
+            result.setStatus(500);
+            result.setPayload({});
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+            return error;
+        }
+        var packaged = data;
+        result.setStatus(200);
+        result.setPayload(packaged);
+        res.status(result.getStatus()).type('application/json').send(result.getPayload());
+        timer.endTimer(result);
+    });
+
+    // TODO: Sanitize search for mongoDB
+    //       run search query on mongoDB
+    //       return results
+
+    // delete later, just testing something
+    
+});
 
 // Get Single Contact
 router.get('/contacts/:id', function (req, res) {
@@ -365,120 +488,6 @@ router.delete('/contacts/:id', function(req, res){
         res.status(result.getStatus()).type('application/json').send(result.getPayload());
         timer.endTimer(result);
     });
-});
-
-// Searching through contacts
-router.get('/search/', function (req, res) {
-
-    /*
-    Example JSON request
-    {
-        "search": String,
-        "include": [array of Strings],
-        "options": {
-            "onlyFavorites": boolean
-        }
-    }
-    */
-
-    // get timer and result builder
-    var {timer, result} = initializeRoute(req);
-
-    log.info("Searching...")
-    //console.log(req.params)
-
-    // get user id
-    var userID = req.user.id;
-
-    // get json body
-    var body = req.body;
-
-    // set up whitelisting to prevent injection
-    var whitelist = ["firstName", "lastName", "middleName", "phoneNumbers", "emails"];
-
-    // create empty list of safe includes to use
-    var safeInclude = [];
-
-    // if the json body has an include property (these represent search terms)
-    if(_.has(req.body, "include"))
-    {
-        // if the include list is empty
-        if(req.body.include.length == 0)
-        {
-            // then by default, search everything
-            safeInclude = whitelist;
-        }
-        else
-        {
-            // as a precaution, pick out only the labels we whitelisted to use
-            safeInclude = _.intersection(req.body.include, whitelist);
-            
-            // check if anything "Abnormal" was sent in the includes property
-            var removedTerms = _.difference(req.body.include, safeInclude);
-
-            // generate an error message for each invalid search terms
-            removedTerms.forEach((term) => {
-                result.addError("Include Key: " + term + " is invalid dumbass, skipping search on invalid term");
-            });
-
-            // nothing was valid to search... bad request
-            if(safeInclude.length == 0)
-            {
-                result.setStatus(400);
-                result.setPayload({});
-                res.status(result.getStatus()).type('application/json').send(result.getPayload());
-                timer.endTimer(result);
-                return;
-            }
-        }
-    }
-    else
-    {
-        // no include? Search everything by default then
-        safeInclude = whitelist;
-    }
-
-    var orAry = [];
-    
-
-    // fill the search object
-    safeInclude.forEach((term) => {
-        tmp = {};
-        tmp[term] = new RegExp(req.body.search, "i");
-        orAry.push(tmp)
-    });
-
-    // create an empty object for mongoDB query
-    var query = {
-        $and: [
-            {userID: userID},
-            {$or: orAry}
-        ]
-    };
-
-    Contact.find(query, function(error, data){
-
-        if (error){
-            log.debug("Delete Operation Failed");
-            console.log(error);
-            result.setStatus(500);
-            result.setPayload({});
-            res.status(result.getStatus()).type('application/json').send(result.getPayload());
-            timer.endTimer(result);
-            return error;
-        }
-        console.log(data);
-    });
-
-    // TODO: Sanitize search for mongoDB
-    //       run search query on mongoDB
-    //       return results
-
-    // delete later, just testing something
-    result.setStatus(418);
-    result.setPayload({});
-    res.status(result.getStatus()).type('application/json').send(result.getPayload());
-    timer.endTimer(result);
 });
 
 
