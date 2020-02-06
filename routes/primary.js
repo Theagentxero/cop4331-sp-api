@@ -438,12 +438,36 @@ router.get('/search/', function (req, res) {
         safeInclude = whitelist;
     }
 
-    // create an empty json object for mongoDB query
-    var searchJSON = {};
+    var orAry = [];
+    
 
-    // fill in search json log it
+    // fill the search object
     safeInclude.forEach((term) => {
-        searchJSON[term] = req.body.search;
+        tmp = {};
+        tmp[term] = new RegExp(req.body.search, "i");
+        orAry.push(tmp)
+    });
+
+    // create an empty object for mongoDB query
+    var query = {
+        $and: [
+            {userID: userID},
+            {$or: orAry}
+        ]
+    };
+
+    Contact.find(query, function(error, data){
+
+        if (error){
+            log.debug("Delete Operation Failed");
+            console.log(error);
+            result.setStatus(500);
+            result.setPayload({});
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+            return error;
+        }
+        console.log(data);
     });
 
     // TODO: Sanitize search for mongoDB
