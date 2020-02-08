@@ -112,7 +112,7 @@ router.get('/contacts', function (req, res) {
 });
 
 // Searching through contacts
-router.get('/contacts/search', function (req, res) {
+router.post('/contacts/search', function (req, res) {
 
     /*
     Example JSON request
