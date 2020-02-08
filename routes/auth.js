@@ -272,6 +272,18 @@ router.get('/checkAuth.json', authVerification, function (req, res) {
 
     
 });
+
+
+router.get('/logout.json', function(req, res){
+    var {timer, result} = initializeRoute(req);
+
+    result.setStatus(200);
+    res.clearCookie('jwt', { path: '/' });
+    res.clearCookie('userinfo', { path: '/' });
+    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+    timer.endTimer(result);
+
+})
 // Actual Endpoints - END
 
 
