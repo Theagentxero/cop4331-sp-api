@@ -210,6 +210,7 @@ router.post('/login.json', function (req, res) {
                                 // Contains The Signed JWT - Cannot Be Pulled By Javascript
                                 res.cookie('jwt', token, { domain: 'crabrr.com', maxAge: 86400000, httpOnly: true, sameSite: false });
                                 res.cookie('jwt', token, { domain: '.crabrr.com', maxAge: 86400000, httpOnly: true, sameSite: false });
+                                res.cookie('jwt', token, { domain: 'img.crabrr.com', maxAge: 86400000, httpOnly: true, sameSite: false });
                                 res.cookie('jwt', token, { maxAge: 86400000, httpOnly: true, sameSite: false });
                                 res.status(result.getStatus()).type('application/json').send(result.getPayload());
                                 timer.endTimer(result);
