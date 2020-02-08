@@ -129,7 +129,7 @@ router.get('/contacts/search', function (req, res) {
     var {timer, result} = initializeRoute(req);
 
     log.info("Searching...")
-    //console.log(req.params)
+    console.log(req.params)
 
     // get user id
     var userID = req.user.id;
@@ -182,11 +182,47 @@ router.get('/contacts/search', function (req, res) {
         safeInclude = whitelist;
     }
 
+    // get white list for options
+    var whitelistOptions = ["onlyFavorites"]
+
+    // empty safeoptions
+    var safeOptions = []
+
+    // if json has an options object
+    if(_.has(req.body, "options"))
+    {
+        // store that object
+        var obj = req.body.options;
+
+        // if that object is empty
+        if(Object.entries(obj).length == 0)
+        {
+            // do nothing
+        }
+        else
+        {
+            // as a precaution, pick out only the options we whitelisted to use
+            var safeOptions = _.intersection(Object.keys(obj), whitelistOptions)
+            console.log(safeOptions)
+
+            // for every safe json option key, get the json value
+            // safeOptions.forEach((term) => {
+            //     tmp = {};
+            //     if(Object.keys(obj).includes(term))
+            //     {
+            //         tmp[term + ".value"]
+            //     }
+
+            // });
+        }  
+    }  
+        
+
     var subDocItems = ["phoneNumbers","emails"];
-
-    var orAry = [];
     
+    var orAry = [];
 
+    
     // fill the search object
     safeInclude.forEach((term) => {
         tmp = {};
@@ -198,6 +234,10 @@ router.get('/contacts/search', function (req, res) {
         
         orAry.push(tmp)
     });
+
+    console.log(orAry)
+
+
 
     // create an empty object for mongoDB query
     var query = {
