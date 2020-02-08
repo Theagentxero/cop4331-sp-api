@@ -204,8 +204,13 @@ router.post('/login.json', function (req, res) {
                                 result.setStatus(200);
                                 // Set Some Cookies - Good For 24 Hrs
                                 // Contains Info We Can Pull and Use With Javascript, Effectively Exactly The Contents of the JWT
+                                res.cookie('userinfo', JSON.stringify(jwtPayload), { domain: 'crabrr.com', maxAge: 86400000, sameSite: false });
+                                res.cookie('userinfo', JSON.stringify(jwtPayload), { domain: '.crabrr.com', maxAge: 86400000, sameSite: false });
                                 res.cookie('userinfo', JSON.stringify(jwtPayload), { maxAge: 86400000, sameSite: false });
                                 // Contains The Signed JWT - Cannot Be Pulled By Javascript
+                                res.cookie('jwt', token, { domain: 'crabrr.com', maxAge: 86400000, httpOnly: true, sameSite: false });
+                                res.cookie('jwt', token, { domain: '.crabrr.com', maxAge: 86400000, httpOnly: true, sameSite: false });
+                                res.cookie('jwt', token, { domain: 'img.crabrr.com', maxAge: 86400000, httpOnly: true, sameSite: false });
                                 res.cookie('jwt', token, { maxAge: 86400000, httpOnly: true, sameSite: false });
                                 res.status(result.getStatus()).type('application/json').send(result.getPayload());
                                 timer.endTimer(result);
@@ -272,6 +277,18 @@ router.get('/checkAuth.json', authVerification, function (req, res) {
 
     
 });
+
+
+router.get('/logout.json', function(req, res){
+    var {timer, result} = initializeRoute(req);
+
+    result.setStatus(200);
+    res.clearCookie('jwt', { path: '/' });
+    res.clearCookie('userinfo', { path: '/' });
+    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+    timer.endTimer(result);
+
+})
 // Actual Endpoints - END
 
 

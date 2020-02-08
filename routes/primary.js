@@ -341,7 +341,7 @@ router.post('/contacts', function (req, res) {
         middleName: req.body.middleName,
         lastName: req.body.lastName,
         phoneNumbers: req.body.phoneNumbers,
-        email : req.body.emails,
+        emails : req.body.emails,
     };
 
     var defaultRequest = {
@@ -350,7 +350,7 @@ router.post('/contacts', function (req, res) {
         middleName: null,
         lastName: null,
         phoneNumbers: [],
-        email : [],
+        emails : [],
     };
 
     // returns obj filled obj with new data..
@@ -426,7 +426,7 @@ router.put('/contacts/:id', function(req, res){
         middleName: null,
         lastName: null,
         phoneNumbers: [],
-        email : [],
+        emails : [],
     };
 
 
