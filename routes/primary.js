@@ -432,7 +432,7 @@ router.put('/contacts/:id', function(req, res){
 
     // returns obj filled obj with new data..
     var newOb = _.defaults(clientRequest, defaultRequest);
-
+    
 
     delete newOb._id;
     delete newOb.userID;
@@ -442,15 +442,15 @@ router.put('/contacts/:id', function(req, res){
 
     Contact.updateOne({ _id : paramID, userID : userID}, {$set: newOb}, function(error, data){
 
-        if (error)
-        {
-        contact.log("IT DIDNT WORK!!!!!!\n")
-        result.setStatus(500);
-        result.setPayload({});
-        result.addError("An error occured while updating the database. Change has NOT been saved.");
-        res.status(result.getStatus()).type('application/json').send(result.getPayload());
-        timer.endTimer(result);
-        return;
+        if (error){
+            console.log(error);
+            console.log("IT DIDNT WORK!!!!!!\n")
+            result.setStatus(500);
+            result.setPayload({});
+            result.addError("An error occured while updating the database. Change has NOT been saved.");
+            res.status(result.getStatus()).type('application/json').send(result.getPayload());
+            timer.endTimer(result);
+            return;
         }
         //console.log(data);
         // console.log("CURRENTLY HAVE after find(): "+ JSON.stringify(data).firstName);
