@@ -61,6 +61,10 @@ app.get('/status', async function(req, res) {
     res.status(200).send();
 });
 
+app.get('/presentation', async function(req, res) {
+    res.redirect(301, "https://docs.google.com/presentation/d/e/2PACX-1vRnMbsvKHr60gHpTM9shhNhs_VkiBoVIVi_IasJwbLcUa--ZOAbHVmXOK-dtoX7nRLaFPmBW-PO0aV-/pub");
+});
+
 // Routes - START
 // Users and Authentication
 app.use('/auth', auth);
