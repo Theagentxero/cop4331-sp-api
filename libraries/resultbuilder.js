@@ -6,11 +6,13 @@ class RestResult {
     this.status = 200;
     this.errors = [];
     this.result = {};
+    this.meta = null;
   }
   
   getPayload(){
     var obj = {};
     if(this.hasErrors){ obj.errors = this.errors; }
+    if(this.meta != null){ obj.meta = this.meta; }
     obj.status = this.status;
     obj.result = this.result;
     return obj;
@@ -50,6 +52,14 @@ class RestResult {
       this.result = payload;
     }else{
       throw "Payload Must Be Object";
+    }
+  }
+
+  setMeta(payload){
+    if(_.isObject(payload)){
+      this.meta = payload;
+    }else{
+      throw "Meta Must Be Object";
     }
   }
 

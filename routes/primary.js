@@ -65,7 +65,6 @@ var contactSchema = new Schema({
 
 var Contact = mongoose.model('contacts', contactSchema);
 
-
 // pool Setup
 // the pool with emit an error on behalf of any idle clients
 // it contains if a backend error or network partition happens
@@ -91,24 +90,60 @@ router.get('/contacts', function (req, res) {
 
     var userID = req.user.id;
 
-    Contact.find({userID: userID}, function(err, contacts){
-        if(err){
+    var page = 0;
+    var perPage = 24;
+
+    if(_.has(req.query, 'perpage')){
+        perPage = parseInt(req.query.perpage);
+    }
+
+    if(_.has(req.query, 'page')){
+        page = parseInt(req.query.page);
+    }
+
+    var meta = {};
+
+    Contact.countDocuments({userID: userID}, function (err, count) {
+        if (err){
             result.setStatus(500);
+            result.addError("Unable To Fetch Contact Count")
             result.setPayload({});
             res.status(result.getStatus()).type('application/json').send(result.getPayload());
             timer.endTimer(result);
             return;
         }else{
-            // So we need to do something about actually getting contacts from mongoDB
-            // For some reaon this worked
-            // Parse contact
-            result.setStatus(200);
-            result.setPayload(contacts);
-            res.status(result.getStatus()).type('application/json').send(result.getPayload());
-            timer.endTimer(result);
-        }
+            //console.log(count);
+            Contact.find({userID: userID}, function(err, contacts){
+                if(err){
+                    result.setStatus(500);
+                    result.addError("Unable To Find Users")
+                    result.setPayload({});
+                    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                    timer.endTimer(result);
+                    return;
+                }else{
+                    meta.resultCount = contacts.length;
+                    meta.totalContacts = count;
+                    meta.currentPage = page;
+                    meta.totalPages = Math.ceil(count / perPage);
+                    meta.nextPageURL = "/contacts?page=" + Math.min(( page + 1),meta.totalPages) + "&perPage=" + (perPage);
+                    meta.lastPageURL = "/contacts?page=" + Math.max(( page - 1),0) + "&perPage=" + (perPage);
 
-    });
+                    // So we need to do something about actually getting contacts from mongoDB
+                    // For some reaon this worked
+                    // Parse contact
+                    result.setStatus(200);
+                    result.setMeta(meta);
+                    result.setPayload(contacts);
+                    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                    timer.endTimer(result);
+                }
+        
+            }).sort({firstName: 1}).skip((page * perPage)).limit(perPage);
+        }
+      });
+
+    
 });
 
 // Searching through contacts
@@ -246,26 +281,77 @@ router.post('/contacts/search', function (req, res) {
             {$or: orAry}
         ]
     };
+    var page = 0;
+    var perPage = 24;
 
-    console.log("Search Object");
-    console.log(query);
-    Contact.find(query, function(error, data){
+    if(_.has(req.query, 'perpage')){
+        perPage = parseInt(req.query.perpage);
+    }
 
-        if (error){
-            log.debug("Delete Operation Failed");
-            console.log(error);
+    if(_.has(req.query, 'page')){
+        page = parseInt(req.query.page);
+    }
+
+    var meta = {};
+
+    Contact.countDocuments(query, function (err, count) {
+        if (err){
             result.setStatus(500);
+            result.addError("Unable To Fetch Contact Count")
             result.setPayload({});
             res.status(result.getStatus()).type('application/json').send(result.getPayload());
             timer.endTimer(result);
-            return error;
+            return;
+        }else{
+            //console.log(count);
+            Contact.find(query, function(error, data){
+
+                if (error){
+                    log.debug("Delete Operation Failed");
+                    console.log(error);
+                    result.setStatus(500);
+                    result.setPayload({});
+                    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                    timer.endTimer(result);
+                    return error;
+                }else{
+                    var packaged = data;
+                    meta.resultCount = data.length;
+                    meta.totalContacts = count;
+                    meta.currentPage = page;
+                    meta.totalPages = Math.ceil(count / perPage);
+                    meta.nextPageURL = "/contacts?page=" + Math.min(( page + 1),meta.totalPages) + "&perPage=" + (perPage);
+                    meta.lastPageURL = "/contacts?page=" + Math.max(( page - 1),0) + "&perPage=" + (perPage);
+    
+                    result.setStatus(200);
+                    result.setMeta(meta);
+                    result.setPayload(packaged);
+                    res.status(result.getStatus()).type('application/json').send(result.getPayload());
+                    timer.endTimer(result);
+                }
+               
+            }).sort({firstName: 1}).skip((page * perPage)).limit(perPage);
         }
-        var packaged = data;
-        result.setStatus(200);
-        result.setPayload(packaged);
-        res.status(result.getStatus()).type('application/json').send(result.getPayload());
-        timer.endTimer(result);
     });
+    // console.log("Search Object");
+    // console.log(query);
+    // Contact.find(query, function(error, data){
+
+    //     if (error){
+    //         log.debug("Delete Operation Failed");
+    //         console.log(error);
+    //         result.setStatus(500);
+    //         result.setPayload({});
+    //         res.status(result.getStatus()).type('application/json').send(result.getPayload());
+    //         timer.endTimer(result);
+    //         return error;
+    //     }
+    //     var packaged = data;
+    //     result.setStatus(200);
+    //     result.setPayload(packaged);
+    //     res.status(result.getStatus()).type('application/json').send(result.getPayload());
+    //     timer.endTimer(result);
+    // });
 
     // TODO: Sanitize search for mongoDB
     //       run search query on mongoDB
