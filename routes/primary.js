@@ -26,12 +26,13 @@ const authVerification = require('../middleware/checkauth.js');
 
 // Route Setup
 // Express Middleware Setup
-var whitelist = ['http://crabrr.com', 'https://crabrr.com']
+var whitelist = ['http://crabrr.com', 'https://crabrr.com', '']
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
+        console.log(origin);
       callback(new Error('Not allowed by CORS'))
     }
   },

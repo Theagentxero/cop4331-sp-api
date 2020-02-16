@@ -51,6 +51,7 @@ var corsOptions = {
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
+        console.log(origin);
       callback(new Error('Not allowed by CORS'))
     }
   },
