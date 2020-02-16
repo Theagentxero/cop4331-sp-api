@@ -305,6 +305,7 @@ router.get('/logout.json', function(req, res){
     var {timer, result} = initializeRoute(req);
 
     result.setStatus(200);
+    console.log(req.cookies);
     res.clearCookie('jwt', { path: '/' });
     res.clearCookie('userinfo', { path: '/' });
     res.status(result.getStatus()).type('application/json').send(result.getPayload());
