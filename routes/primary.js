@@ -244,6 +244,7 @@ router.post('/contacts/search', function (req, res) {
 
     // empty safeoptions
     var safeOptions = []
+    var favoritesResult = false;
 
     // if json has an options object
     if(_.has(req.body, "options"))
@@ -261,6 +262,10 @@ router.post('/contacts/search', function (req, res) {
             // as a precaution, pick out only the options we whitelisted to use
             var safeOptions = _.intersection(Object.keys(obj), whitelistOptions)
             console.log(safeOptions)
+            if(safeOptions.length > 0){
+                favoritesResult = obj[safeOptions[0]];
+            }
+            
 
             // for every safe json option key, get the json value
             // safeOptions.forEach((term) => {
@@ -294,8 +299,6 @@ router.post('/contacts/search', function (req, res) {
 
     console.log(orAry)
 
-
-
     // create an empty object for mongoDB query
     var query = {
         $and: [
@@ -303,6 +306,13 @@ router.post('/contacts/search', function (req, res) {
             {$or: orAry}
         ]
     };
+
+    if(favoritesResult){
+        // Show Only Favorites
+        query.$and.push({favorite: true});
+        console.log(query);
+    }
+
     var page = 0;
     var perPage = 24;
 
