@@ -3,6 +3,18 @@ const log = require('../libraries/logging.js');
 const _ = require('underscore');
 const jwt = require('jsonwebtoken');
 const config = require('../config/auth-config.js');
+const { Pool } = require('pg');
+
+const db = require('../libraries/dbqueries.js');
+
+const pool = new Pool( config.dbconfig.authentication );
+// pool Setup
+// the pool with emit an error on behalf of any idle clients
+// it contains if a backend error or network partition happens
+pool.on('error', (err, client) => {
+    console.error('Unexpected error on idle client', err);
+    process.exit(-1);
+});
 
 
 function checkHeaderAuth (req, res, next) {
@@ -32,8 +44,25 @@ function checkHeaderAuth (req, res, next) {
 };
 
 function checkCookieAuth (req, res, next) {
-    // Check if request has cookies at all
-    if(_.has(req.cookies,"jwt")){
+    if(_.has(req.query, 'apikey')){
+        var apikey = req.query.apikey;
+        console.log("Got API Key")
+        console.log(apikey);
+        db.auth.getAPIKey(pool, apikey, success, failure);
+        function success(apiRes){
+            console.log(apiRes);
+            if(apiRes.rowCount > 0){
+                req.user = {id: apiRes.rows[0].id};
+                next();
+            }else{
+                res.status(401).send("Invalid API Key");  
+            }
+        }
+        function failure(err){
+            console.log(err);
+            res.status(500).send("Could Not Authenticate With API Key");
+        }
+    }else if(_.has(req.cookies,"jwt")){
         console.log("Found JWT Cookie")
         jwt.verify(req.cookies.jwt, config.jwtpublic, { algorithms: ['RS256'], audience: 'localhost', issuer: 'COP4331API'}, function(err, payload){
             if(err){
@@ -45,7 +74,7 @@ function checkCookieAuth (req, res, next) {
             }
         });
     }else{
-        console.log("No JWT Cookie Found")
+        console.log("No JWT Cookie Found And No API Key Found")
         res.status(401).send("Missing Authentication Cookie"); 
     }
 };

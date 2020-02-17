@@ -28,6 +28,14 @@ const auth = {
         //console.log(successCallback)
         //console.log(failureCallback)
         performQuery_withValues_noLocal(pool, query, successCallback, failureCallback);
+    },
+    getAPIKey(pool, key, successCallback, failureCallback){
+        const query = {
+            text: "SELECT id FROM auth.api_keys WHERE key = '" + key + "'::UUID;",
+            //values: [key]
+        }
+        console.log(query);
+        performQuery_noValues(pool, query, successCallback, failureCallback);
     }
 };
 
@@ -112,29 +120,21 @@ function performQuery_noValues(pool, query, successCallback, failureCallback){
         client.query('BEGIN', err => {
             // Check For Errors
             if (shouldAbort(err)) return
-            const setupLocals = query.account_and_id_set;
-
-            client.query(setupLocals, (err, res) => {
-                
+            const thework = query.text;
+            client.query(thework, (err, res) => {
+                // Check For Errors
                 if (shouldAbort(err)) return
 
-                const thework = query.text;
-                client.query(thework, (err, res) => {
-                    // Check For Errors
-                    if (shouldAbort(err)) return
-
-                    client.query('COMMIT', err => {
-                        if (err) {
-                        console.error('Error committing transaction', err.stack)
-                        failureCallback({result: "TRANSACTION COMMIT FAILED",error: err});
-                        }
-                        //returning
-                        //console.log('returning' + res);
-                        successCallback(res)
-                        client.release();
-                    })
+                client.query('COMMIT', err => {
+                    if (err) {
+                    console.error('Error committing transaction', err.stack)
+                    failureCallback({result: "TRANSACTION COMMIT FAILED",error: err});
+                    }
+                    //returning
+                    //console.log('returning' + res);
+                    successCallback(res)
+                    client.release();
                 })
-
             })
 
         })
