@@ -62,6 +62,18 @@ function checkCookieAuth (req, res, next) {
             console.log(err);
             res.status(500).send("Could Not Authenticate With API Key");
         }
+    }else if(req.get("X-ApiToken")){
+        console.log("Found API Key In Header")
+        console.log(req.get("X-ApiToken"));
+        jwt.verify(req.get("X-ApiToken"), config.jwtpublic, { algorithms: ['RS256'], audience: 'localhost', issuer: 'COP4331API'}, function(err, payload){
+            if(err){
+                console.log(err);
+                res.status(401).send("Invalid Header X-ApiToken - Expired or Invalid"); 
+            }else{
+                req.user = {id: payload.user_id};
+                next();
+            }
+        });
     }else if(_.has(req.cookies,"jwt")){
         console.log("Found JWT Cookie")
         jwt.verify(req.cookies.jwt, config.jwtpublic, { algorithms: ['RS256'], audience: 'localhost', issuer: 'COP4331API'}, function(err, payload){
