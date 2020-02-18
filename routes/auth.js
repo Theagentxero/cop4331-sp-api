@@ -44,7 +44,10 @@ var corsOptions = {
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 router.use(cors(corsOptions));
-
+router.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Credentials", "true");
+    next()
+});
 // router.use(function(req, res, next) {
 //     res.header("Access-Control-Allow-Origin", "https://crabrr.com"); // update to match the domain you will make the request from
 //     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
