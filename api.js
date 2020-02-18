@@ -63,14 +63,10 @@ var corsOptions = {
     origin: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     preflightContinue: false,
+    credentials: true,
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 app.use(cors(corsOptions));
-
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Credentials", "true");
-    next()
-});
 
 // app.use(function(req, res, next) {
 //     res.header("Access-Control-Allow-Origin", "https://crabrr.com"); // update to match the domain you will make the request from
