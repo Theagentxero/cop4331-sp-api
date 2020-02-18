@@ -35,16 +35,26 @@ const authVerification = require('../middleware/checkauth.js');
 //   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 // }
 // router.use(cors(corsOptions));
-router.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "https://crabrr.com"); // update to match the domain you will make the request from
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
-    if (req.method === "OPTIONS") {
-        return res.status(200).end();
-    }
-    next();
-});
+
+// TEST USING cors with options object {origin: true}
+var corsOptions = {
+    origin: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    preflightContinue: false,
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+router.use(cors(corsOptions));
+
+// router.use(function(req, res, next) {
+//     res.header("Access-Control-Allow-Origin", "https://crabrr.com"); // update to match the domain you will make the request from
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//     res.header("Access-Control-Allow-Credentials", "true");
+//     res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+//     if (req.method === "OPTIONS") {
+//         return res.status(200).end();
+//     }
+//     next();
+// });
 router.use(cookieParser());
 
 // DB Setup
