@@ -63,8 +63,7 @@ function checkCookieAuth (req, res, next) {
             res.status(500).send("Could Not Authenticate With API Key");
         }
     }else if(req.get("X-ApiToken")){
-        console.log("Found API Key In Header")
-        console.log(req.get("X-ApiToken"));
+        console.log("Found API Key In Header X-ApToken")
         jwt.verify(req.get("X-ApiToken"), config.jwtpublic, { algorithms: ['RS256'], audience: 'localhost', issuer: 'COP4331API'}, function(err, payload){
             if(err){
                 console.log(err);

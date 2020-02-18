@@ -157,7 +157,7 @@ router.get('/contacts', function (req, res) {
                     meta.resultCount = contacts.length;
                     meta.totalContacts = count;
                     meta.currentPage = page;
-                    meta.totalPages = Math.ceil(count / perPage);
+                    meta.totalPages = Math.max(0, Math.ceil(count / perPage) - 1);
                     meta.nextPageURL = "/contacts?page=" + Math.min(( page + 1),meta.totalPages) + "&perPage=" + (perPage);
                     meta.lastPageURL = "/contacts?page=" + Math.max(( page - 1),0) + "&perPage=" + (perPage);
 
@@ -229,7 +229,7 @@ router.post('/contacts/search', function (req, res) {
 
             // generate an error message for each invalid search terms
             removedTerms.forEach((term) => {
-                result.addError("Include Key: " + term + " is invalid dumbass, skipping search on invalid term");
+                result.addError("Include Key: " + term + " is invalid, skipping search on invalid term");
             });
 
             // nothing was valid to search... bad request
@@ -361,9 +361,9 @@ router.post('/contacts/search', function (req, res) {
                     meta.resultCount = data.length;
                     meta.totalContacts = count;
                     meta.currentPage = page;
-                    meta.totalPages = Math.ceil(count / perPage);
-                    meta.nextPageURL = "/contacts?page=" + Math.min(( page + 1),meta.totalPages) + "&perPage=" + (perPage);
-                    meta.lastPageURL = "/contacts?page=" + Math.max(( page - 1),0) + "&perPage=" + (perPage);
+                    meta.totalPages = Math.max(0, Math.ceil(count / perPage) - 1);
+                    meta.nextPageURL = "/contacts/search?page=" + Math.min(( page + 1),meta.totalPages) + "&perPage=" + (perPage);
+                    meta.lastPageURL = "/contacts/search?page=" + Math.max(( page - 1),0) + "&perPage=" + (perPage);
     
                     result.setStatus(200);
                     result.setMeta(meta);
